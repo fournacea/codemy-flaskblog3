@@ -10,3 +10,19 @@ body{
 .user-image{
     max-width: 900px;
 }
+
+.brand-gradient{
+    background: #0091ff; /* Fallback for older browsers */
+    background: -webkit-linear-gradient(to top, #0091ff, #32cd4c); /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to top, #0091ff, #32cd4c); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+ */
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+
+}
+
+.banner-holder, .main-page-header{
+    background-image: url(/static/images/banner.webp);
+    background-size: cover;
+    background-position: left;
+}

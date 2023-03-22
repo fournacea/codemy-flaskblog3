@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    {% if name %}
+        <div class="container mt-3">
+            <h2 class="text-center mb-3">Current Users</h2>            
+            <table class="table table-bordered table-striped table-sm">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+            {% for our_user in our_users%}
+                    <tr>
+                    <td>{{our_user.id}}</td>
+                    <td>{{our_user.name}}</td>
+                    <td>{{our_user.email}}</td>
+                    </tr>
+            {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% else %}
+        <h1>User List:</h1>
+        <div class="shadow p-3 mb-5 bg-body rounded">
+            <form method="post" action="">
+                <div class="container">
+                    {{ form.hidden_tag() }}
+    
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+    
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control") }}
+    
+                    {{ form.submit(class="btn btn-secondary mt-2") }}
+                </div>
+            </form>
+        </div>
+        <br><br>
+
+    
+    <div class="container mt-3 overflow-scroll">
+        <h2 class="text-center mb-3">Current Users</h2>            
+        <table class="table table-bordered table-striped table-sm">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+        {% for our_user in our_users%}
+                <tr>
+                <td>{{our_user.id}}</td>
+                <td>{{our_user.name}}</td>
+                <td>{{our_user.email}}</td>
+                </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    
+    {% endif %}
+
+{% endblock content %}
