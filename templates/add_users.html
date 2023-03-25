@@ -11,6 +11,8 @@
                     <th>ID</th>
                     <th>Username</th>
                     <th>Email</th>
+                    <th>Favorite Color</th>
+                    <th>Delete User</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -19,6 +21,8 @@
                         <td>{{our_user.id}}</td>
                         <td><a href="{{ url_for('update_id', id=our_user.id) }}">{{our_user.name}}</a></td>
                         <td>{{our_user.email}}</td>
+                        <td>{{our_user.favorite_color}}</td>
+                        <td><a href="{{ url_for('delete', id=our_user.id) }}">Delete</a></td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -37,6 +41,9 @@
     
                     {{ form.email.label(class="form-label") }}
                     {{ form.email(class="form-control") }}
+
+                    {{ form.favorite_color.label(class="form-label") }}
+                    {{ form.favorite_color(class="form-control") }}
     
                     {{ form.submit(class="btn btn-secondary mt-2") }}
                 </div>
@@ -45,7 +52,7 @@
         <br><br>
 
     
-    <div class="container mt-3 overflow-scroll">
+    <div class="container mt-3">
         <h2 class="text-center mb-3">Current Users</h2>            
         <table class="table table-bordered table-striped table-sm">
             <thead>
@@ -53,6 +60,8 @@
                 <th>ID</th>
                 <th>Username</th>
                 <th>Email</th>
+                <th>Favorite Color</th>
+                <th>Delete User</th>
                 </tr>
             </thead>
             <tbody>
@@ -61,6 +70,8 @@
                 <td>{{our_user.id}}</td>
                 <td><a href="{{ url_for('update_id', id=our_user.id) }}">{{our_user.name}}</a></td>
                 <td>{{our_user.email}}</td>
+                <td>{{our_user.favorite_color}}</td>
+                <td><a href="{{ url_for('delete', id=our_user.id) }}">Delete</a></td>
                 </tr>
         {% endfor %}
             </tbody>

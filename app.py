@@ -1,11 +1,14 @@
-from flask import Flask, render_template, flash, request
+from flask import Flask, render_template, flash, request, url_for
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, EmailField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
+from flask_migrate import Migrate
+
 from datetime import datetime
 # import MySQLdb
-from sqlalchemy import create_engine
+
 
 
 #--CONFIGS--#
@@ -27,6 +30,7 @@ app.config['SECRET_KEY'] = "Super duper secret key"
 #Initialize the Database
 db = SQLAlchemy(app)
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=True)
+migrate = Migrate(app, db)
 #--End of CONFIGS--#
 
 
@@ -36,6 +40,7 @@ class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
+    favorite_color = db.Column(db.String(120))
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
 
     #Create a String
@@ -49,6 +54,7 @@ class Users(db.Model):
 class UserForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     email = EmailField("Email", validators=[DataRequired()])
+    favorite_color = StringField("Favorite Color")
     submit = SubmitField("Submit")
 
 #Create a Form Class
@@ -64,9 +70,31 @@ def index():
     first_name = "Hank Hill"
     return render_template('index.html', first_name=first_name)
 
-@app.route('/user/<name>')
-def user(name):
-    return render_template('user.html', name=name)
+@app.route('/delete/<int:id>')
+def delete(id):
+    user_to_delete = Users.query.get_or_404(id)
+    name = None
+    form = UserForm()
+    try:
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash("User successfully deleted ")
+
+        our_users = Users.query.order_by(Users.date_added)
+        return render_template(
+            'add_users.html', 
+            form=form,
+            name=name, 
+            our_users=our_users
+            )
+    except:
+        flash("There was a problem deleting the user...")
+        return render_template(
+            'add_users.html', 
+            form=form,
+            name=name, 
+            our_users=our_users
+            )
 
 @app.route('/name', methods=['GET', 'POST'])
 def name():
@@ -79,6 +107,10 @@ def name():
         flash(f"Hello, { name }! Form was submitted successfully.")
     return render_template("name.html", name=name, form=form)
 
+@app.route('/user/<name>')
+def user(name):
+    return render_template('user.html', name=name)
+
 @app.route('/user/add', methods=['GET', 'POST'])
 def add_user():
     name = None
@@ -86,12 +118,17 @@ def add_user():
     if form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None:
-            user = Users(name=form.name.data, email=form.email.data)
+            user = Users(
+                name=form.name.data, 
+                email=form.email.data,
+                favorite_color = form.favorite_color.data
+                )
             db.session.add(user)
             db.session.commit()
         name = form.name.data
         form.name.data = ''
         form.email.data = ''
+        form.favorite_color.data = ''
         flash("User added successfully!")
     our_users = Users.query.order_by(Users.date_added)
     return render_template(
@@ -108,6 +145,7 @@ def update_id(id):
     if request.method == 'POST':
         name_to_update.name = request.form['name']
         name_to_update.email = request.form['email']
+        name_to_update.favorite_color = request.form['favorite_color']
         try: 
             db.session.commit()
             flash("User updated successfully")
@@ -116,7 +154,7 @@ def update_id(id):
             flash("Error! Looks like there was a problem. Please try again.")
             return render_template('update.html', form=form, name_to_update=name_to_update)
     else:
-        return render_template('update.html', form=form, name_to_update=name_to_update)  
+        return render_template('update.html', form=form, name_to_update=name_to_update, id=id)  
 
 
 #--End of ROUTE DECORATORS--#
