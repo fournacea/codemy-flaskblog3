@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    {% if name %}
+        <div class="container mt-3">
+            <h2 class="text-center mb-3">Update User</h2>            
+            <table class="table table-bordered table-striped table-sm">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+            {% for our_user in our_users%}
+                    <tr>
+                    <td>{{our_user.id}}</td>
+                    <td>{{our_user.name}}</td>
+                    <td>{{our_user.email}}</td>
+                    </tr>
+            {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% else %}
+        <h1>Update User...</h1>
+        <div class="shadow p-3 mb-5 bg-body rounded">
+            <form method="post" action="/update/{{ name_to_update.id }}">
+                <div class="container">
+                    {{ form.hidden_tag() }}
+    
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control", value=name_to_update.name) }}
+    
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control", value=name_to_update.email) }}
+    
+                    {{ form.submit(class="btn btn-secondary mt-2") }}
+                </div>
+            </form>
+        </div>
+        <br><br>
+    {% endif %}
+
+{% endblock content %}

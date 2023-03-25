@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash
+from flask import Flask, render_template, flash, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, EmailField
 from wtforms.validators import DataRequired
@@ -11,6 +11,7 @@ from sqlalchemy import create_engine
 #--CONFIGS--#
 #Create a Flask Instance
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 #Add Database
 #Old SQLite db
@@ -94,11 +95,30 @@ def add_user():
         flash("User added successfully!")
     our_users = Users.query.order_by(Users.date_added)
     return render_template(
-        'add_user.html', 
+        'add_users.html', 
         form=form,
         name=name, 
         our_users=our_users
         )
+
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+def update_id(id):
+    form = UserForm()
+    name_to_update = Users.query.get_or_404(id)
+    if request.method == 'POST':
+        name_to_update.name = request.form['name']
+        name_to_update.email = request.form['email']
+        try: 
+            db.session.commit()
+            flash("User updated successfully")
+            return render_template('update.html', form=form, name_to_update=name_to_update)
+        except:
+            flash("Error! Looks like there was a problem. Please try again.")
+            return render_template('update.html', form=form, name_to_update=name_to_update)
+    else:
+        return render_template('update.html', form=form, name_to_update=name_to_update)  
+
+
 #--End of ROUTE DECORATORS--#
 
 
