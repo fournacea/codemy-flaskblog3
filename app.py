@@ -9,11 +9,13 @@ from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from datetime import datetime
+from datetime import date
 # import MySQLdb
 
 
-
+#-----------#
 #--CONFIGS--#
+
 #Create a Flask Instance
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -33,10 +35,14 @@ app.config['SECRET_KEY'] = "Super duper secret key"
 db = SQLAlchemy(app)
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=True)
 migrate = Migrate(app, db)
+
+#------------------#
 #--End of CONFIGS--#
 
 
+#-------------#
 #--DB MODELS--#
+
 #Create Database Model
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -62,10 +68,13 @@ class Users(db.Model):
     #Create a String
     def __repr__(self):
         return '<Name %r>' % self.name
+#--------------------------#    
 #--End of DATABASE MODELS--#    
 
 
+#----------------#
 #--FORM CLASSES--#
+
 #Create a Form Class for Users
 class UserForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
@@ -90,15 +99,22 @@ class PasswordForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Submit")
+
+#-----------------------#
 #--End of FORM CLASSES--#
 
 
+#--------------------#
 #--ROUTE DECORATORS--#
+
+#Home page
 @app.route('/')
 def index():
     first_name = "Hank Hill"
     return render_template('index.html', first_name=first_name)
 
+
+#Delete user
 @app.route('/delete/<int:id>')
 def delete(id):
     user_to_delete = Users.query.get_or_404(id)
@@ -125,6 +141,7 @@ def delete(id):
             our_users=our_users
             )
 
+#Display name entered into form
 @app.route('/name', methods=['GET', 'POST'])
 def name():
     name = None
@@ -136,10 +153,12 @@ def name():
         flash(f"Hello, { name }! Form was submitted successfully.")
     return render_template('name.html', name=name, form=form)
 
+#Say hello to user(test page)
 @app.route('/user/<name>')
 def user(name):
     return render_template('user.html', name=name)
 
+#Add new user
 @app.route('/user/add', methods=['GET', 'POST'])
 def add_user():
     name = None
@@ -170,6 +189,7 @@ def add_user():
         our_users=our_users
         )
 
+#Update User
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update_id(id):
     form = UserForm()
@@ -220,18 +240,42 @@ def test_pw():
         form=form)  
 
 
+#JSON API
+@app.route('/date')
+def get_current_date():
+    # Get the current date and time
+    now = datetime.now()
+
+    # Format the date and time
+    formatted_date = now.strftime("%Y-%m-%d")
+    formatted_time = now.strftime("%H:%M:%S")
+
+    return {"Date": formatted_date, "Time": formatted_time}
+   
+#---------------------------#
 #--End of ROUTE DECORATORS--#
 
 
+#---------------#
 #--ERROR PAGES--#
+
+#Page not found
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("404.html"), 404
 
+#Server Error
 @app.errorhandler(500)
 def server_error(e):
     return render_template("500.html"), 500
+
+#I'm a Little Teapot
+@app.errorhandler(418)
+def teapot(e):
+    return render_template("teapot.html"), 418
+
 #--End of ERROR PAGES--#
+#----------------------#
 
 
 if __name__=='__main__':
