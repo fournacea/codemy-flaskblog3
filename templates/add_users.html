@@ -44,6 +44,12 @@
 
                     {{ form.favorite_color.label(class="form-label") }}
                     {{ form.favorite_color(class="form-control") }}
+
+                    {{ form.password_hash.label(class="form-label") }}
+                    {{ form.password_hash(class="form-control") }}
+
+                    {{ form.password_hash2.label(class="form-label") }}
+                    {{ form.password_hash2(class="form-control") }}
     
                     {{ form.submit(class="btn btn-secondary mt-2") }}
                 </div>
@@ -62,6 +68,7 @@
                 <th>Email</th>
                 <th>Favorite Color</th>
                 <th>Delete User</th>
+                <th>Password</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,12 +79,12 @@
                 <td>{{our_user.email}}</td>
                 <td>{{our_user.favorite_color}}</td>
                 <td><a href="{{ url_for('delete', id=our_user.id) }}">Delete</a></td>
+                <td>{{ our_user.password_hash }}</td>
                 </tr>
         {% endfor %}
             </tbody>
         </table>
     </div>
-    
     
     {% endif %}
 

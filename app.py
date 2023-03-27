@@ -1,10 +1,12 @@
 from flask import Flask, render_template, flash, request, url_for
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, EmailField
-from wtforms.validators import DataRequired
+from wtforms import (StringField, SubmitField, EmailField, PasswordField,
+    BooleanField, ValidationError)
+from wtforms.validators import DataRequired, EqualTo, Length
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from datetime import datetime
 # import MySQLdb
@@ -43,6 +45,20 @@ class Users(db.Model):
     favorite_color = db.Column(db.String(120))
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
 
+    #Password stuff
+    password_hash = db.Column(db.String(128))
+
+    @property
+    def password(self):
+        raise AttributeError("password is not readable")
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
     #Create a String
     def __repr__(self):
         return '<Name %r>' % self.name
@@ -55,11 +71,24 @@ class UserForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     email = EmailField("Email", validators=[DataRequired()])
     favorite_color = StringField("Favorite Color")
+    password_hash = PasswordField(
+        "Password", 
+        validators=[DataRequired(), 
+        EqualTo('password_hash2', 
+        message='Passwords must match!')]
+        )
+    password_hash2 = PasswordField("Confirm Password", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
 #Create a Form Class
 class NamerForm(FlaskForm):
     name = StringField("What's your name?", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+#Create a Form Class
+class PasswordForm(FlaskForm):
+    email = StringField("Email", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Submit")
 #--End of FORM CLASSES--#
 
@@ -105,7 +134,7 @@ def name():
         name = form.name.data
         form.name.data = ''
         flash(f"Hello, { name }! Form was submitted successfully.")
-    return render_template("name.html", name=name, form=form)
+    return render_template('name.html', name=name, form=form)
 
 @app.route('/user/<name>')
 def user(name):
@@ -118,10 +147,12 @@ def add_user():
     if form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None:
+            hashed_pw = generate_password_hash(form.password_hash.data,'sha256')
             user = Users(
                 name=form.name.data, 
                 email=form.email.data,
-                favorite_color = form.favorite_color.data
+                favorite_color=form.favorite_color.data,
+                password_hash=hashed_pw
                 )
             db.session.add(user)
             db.session.commit()
@@ -129,6 +160,7 @@ def add_user():
         form.name.data = ''
         form.email.data = ''
         form.favorite_color.data = ''
+        form.password_hash.data = ''
         flash("User added successfully!")
     our_users = Users.query.order_by(Users.date_added)
     return render_template(
@@ -154,7 +186,38 @@ def update_id(id):
             flash("Error! Looks like there was a problem. Please try again.")
             return render_template('update.html', form=form, name_to_update=name_to_update)
     else:
-        return render_template('update.html', form=form, name_to_update=name_to_update, id=id)  
+        return render_template('update.html', form=form, name_to_update=name_to_update, id=id)
+
+
+#Create test password page
+@app.route('/test_pw', methods=['GET', 'POST'])
+def test_pw():
+    email = None
+    password = None
+    pw_to_check = None
+    passed = None
+    form =PasswordForm()
+    #Validate Form
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password.data
+        form.email.data = ''
+        form.password.data = ''
+
+        #Lookup User by email
+        pw_to_check = Users.query.filter_by(email=email).first()
+
+        #Check password hash
+        passed = check_password_hash(pw_to_check.password_hash, password)
+
+        #flash(f"Hello, { email }! Form was submitted successfully.")
+    return render_template(
+        'test_pw.html', 
+        email=email, 
+        password=password, 
+        pw_to_check=pw_to_check,
+        passed=passed, 
+        form=form)  
 
 
 #--End of ROUTE DECORATORS--#
